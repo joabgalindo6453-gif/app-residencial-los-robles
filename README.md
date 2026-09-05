@@ -1,4 +1,13 @@
-# Prototipo — Residencial Los Robles
+# Proyecto II Prototipo Funcional Equipo 3 — Residencial Los Robles
+
+
+# Miembros del Equipo
+
+- JOAB ELIHU GALINDO LÓPEZ
+- FRANCISCO GERARDO IBARRA PÉREZ
+- ITZEL ARACELI LARIOS TADILLO
+
+# Sprint Ejecutado
 
 Prototipo mínimo de 3 historias de usuario del sprint actual:
 
