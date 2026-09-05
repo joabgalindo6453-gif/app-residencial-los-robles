@@ -1,0 +1,195 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model avisos {
+  id_aviso          Int               @id @default(autoincrement())
+  id_autor          Int
+  titulo            String
+  contenido         String
+  categoria         String            @default("general")
+  prioridad         String            @default("normal")
+  fecha_publicacion String            @default("datetime('now')")
+  usuarios          usuarios          @relation(fields: [id_autor], references: [id_usuario], onUpdate: NoAction)
+  avisos_lecturas   avisos_lecturas[]
+
+  @@index([fecha_publicacion], map: "idx_avisos_fecha")
+}
+
+model avisos_lecturas {
+  id_aviso      Int
+  id_usuario    Int
+  fecha_lectura String   @default("datetime('now')")
+  usuarios      usuarios @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade, onUpdate: NoAction)
+  avisos        avisos   @relation(fields: [id_aviso], references: [id_aviso], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([id_aviso, id_usuario])
+}
+
+model cuotas {
+  id_cuota          Int       @id @default(autoincrement())
+  id_vivienda       Int
+  periodo           String
+  monto             Float
+  fecha_vencimiento String
+  estado            String    @default("pendiente")
+  viviendas         viviendas @relation(fields: [id_vivienda], references: [id_vivienda], onDelete: Cascade, onUpdate: NoAction)
+  pagos             pagos[]
+
+  @@unique([id_vivienda, periodo], map: "sqlite_autoindex_cuotas_1")
+  @@index([estado], map: "idx_cuotas_estado")
+  @@index([id_vivienda], map: "idx_cuotas_vivienda")
+}
+
+model directorio {
+  id_directorio Int     @id @default(autoincrement())
+  nombre        String
+  categoria     String
+  telefono      String?
+  correo        String?
+  descripcion   String?
+}
+
+model opciones_votacion {
+  id_opcion    Int        @id @default(autoincrement())
+  id_votacion  Int
+  texto_opcion String
+  votaciones   votaciones @relation(fields: [id_votacion], references: [id_votacion], onDelete: Cascade, onUpdate: NoAction)
+  votos        votos[]
+}
+
+model pagos {
+  id_pago      Int       @id @default(autoincrement())
+  id_cuota     Int
+  id_usuario   Int?
+  monto_pagado Float
+  metodo_pago  String    @default("simulado")
+  referencia   String?
+  fecha_pago   String    @default("datetime('now')")
+  usuarios     usuarios? @relation(fields: [id_usuario], references: [id_usuario], onUpdate: NoAction)
+  cuotas       cuotas    @relation(fields: [id_cuota], references: [id_cuota], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([id_cuota], map: "idx_pagos_cuota")
+}
+
+model reportes {
+  id_reporte           Int                    @id @default(autoincrement())
+  id_usuario           Int
+  id_vivienda          Int?
+  titulo               String
+  descripcion          String
+  categoria            String                 @default("falla")
+  prioridad            String                 @default("normal")
+  estado               String                 @default("abierto")
+  fecha_creacion       String                 @default("datetime('now')")
+  fecha_actualizacion  String                 @default("datetime('now')")
+  viviendas            viviendas?             @relation(fields: [id_vivienda], references: [id_vivienda], onUpdate: NoAction)
+  usuarios             usuarios               @relation(fields: [id_usuario], references: [id_usuario], onUpdate: NoAction)
+  reportes_seguimiento reportes_seguimiento[]
+
+  @@index([estado], map: "idx_reportes_estado")
+}
+
+model reportes_seguimiento {
+  id_seguimiento Int      @id @default(autoincrement())
+  id_reporte     Int
+  id_usuario     Int
+  comentario     String
+  fecha          String   @default("datetime('now')")
+  usuarios       usuarios @relation(fields: [id_usuario], references: [id_usuario], onUpdate: NoAction)
+  reportes       reportes @relation(fields: [id_reporte], references: [id_reporte], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([id_reporte], map: "idx_seguimiento_reporte")
+}
+
+model roles {
+  id_rol      Int        @id @default(autoincrement())
+  nombre      String     @unique(map: "sqlite_autoindex_roles_1")
+  descripcion String?
+  usuarios    usuarios[]
+}
+
+model sesiones {
+  id_sesion        Int      @id @default(autoincrement())
+  id_usuario       Int
+  token_hash       String
+  tipo             String   @default("acceso")
+  fecha_creacion   String   @default("datetime('now')")
+  fecha_expiracion String
+  revocado         Int      @default(0)
+  usuarios         usuarios @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([id_usuario], map: "idx_sesiones_usuario")
+}
+
+model usuarios {
+  id_usuario           Int                    @id @default(autoincrement())
+  id_vivienda          Int?
+  id_rol               Int
+  nombre_completo      String
+  correo               String                 @unique(map: "sqlite_autoindex_usuarios_1")
+  password_hash        String
+  telefono             String?
+  activo               Int                    @default(1)
+  fecha_registro       String                 @default("datetime('now')")
+  avisos               avisos[]
+  avisos_lecturas      avisos_lecturas[]
+  pagos                pagos[]
+  reportes             reportes[]
+  reportes_seguimiento reportes_seguimiento[]
+  sesiones             sesiones[]
+  roles                roles                  @relation(fields: [id_rol], references: [id_rol], onUpdate: NoAction)
+  viviendas            viviendas?             @relation(fields: [id_vivienda], references: [id_vivienda], onUpdate: NoAction)
+  votaciones           votaciones[]
+  votos                votos[]
+
+  @@index([id_vivienda], map: "idx_usuarios_vivienda")
+  @@index([correo], map: "idx_usuarios_correo")
+}
+
+model viviendas {
+  id_vivienda        Int        @id @default(autoincrement())
+  numero_vivienda    String     @unique(map: "sqlite_autoindex_viviendas_1")
+  calle              String?
+  manzana            String?
+  lote               String?
+  propietario_nombre String
+  estado             String     @default("activa")
+  fecha_alta         String     @default("datetime('now')")
+  cuotas             cuotas[]
+  reportes           reportes[]
+  usuarios           usuarios[]
+
+  @@index([numero_vivienda], map: "idx_viviendas_numero")
+}
+
+model votaciones {
+  id_votacion       Int                 @id @default(autoincrement())
+  id_creador        Int
+  titulo            String
+  descripcion       String?
+  fecha_inicio      String
+  fecha_fin         String
+  estado            String              @default("activa")
+  opciones_votacion opciones_votacion[]
+  usuarios          usuarios            @relation(fields: [id_creador], references: [id_usuario], onUpdate: NoAction)
+  votos             votos[]
+}
+
+model votos {
+  id_voto           Int               @id @default(autoincrement())
+  id_votacion       Int
+  id_opcion         Int
+  id_usuario        Int
+  fecha_voto        String            @default("datetime('now')")
+  usuarios          usuarios          @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade, onUpdate: NoAction)
+  opciones_votacion opciones_votacion @relation(fields: [id_opcion], references: [id_opcion], onDelete: Cascade, onUpdate: NoAction)
+  votaciones        votaciones        @relation(fields: [id_votacion], references: [id_votacion], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([id_votacion, id_usuario], map: "sqlite_autoindex_votos_1")
+}

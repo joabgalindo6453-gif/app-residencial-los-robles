@@ -1,0 +1,51 @@
+body {
+  font-family: system-ui, sans-serif;
+  max-width: 420px;
+  margin: 40px auto;
+  padding: 0 16px;
+  color: #222;
+}
+
+h1 {
+  font-size: 1.3rem;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+label {
+  font-size: 0.85rem;
+  font-weight: bold;
+}
+
+input, select, button {
+  font-size: 1rem;
+  padding: 6px;
+}
+
+button {
+  margin-top: 8px;
+  cursor: pointer;
+}
+
+.error {
+  color: #b00020;
+}
+
+.nav {
+  margin-bottom: 16px;
+}
+
+.nav a {
+  margin-right: 12px;
+}
+
+.card {
+  border: 1px solid #ccc;
+  padding: 12px;
+  border-radius: 4px;
+  margin-top: 12px;
+}
